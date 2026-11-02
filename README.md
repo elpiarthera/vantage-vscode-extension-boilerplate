@@ -2,7 +2,7 @@
 
 VS Code extension boilerplate: installs one remote MCP server into VS Code from **one configuration
 file**. Built against the VS Code extension standard (ElPi-Corp
-`resources/references/vscode-extension-standard.md` @3c617982), rules V-1 to V-3 so far.
+`resources/references/vscode-extension-standard.md` @3c617982), rules V-1, V-2, V-3, V-5, V-6 and V-12 so far.
 
 *Version française plus bas : [Français](#français).*
 
@@ -20,24 +20,78 @@ Everything that identifies the server lives in `extension.config.json`:
 | `url` | Streamable HTTP endpoint of the remote MCP server (`https`; plain `http` only on a loopback host) |
 | `icon` | Extension icon, relative to the configuration file |
 | `distribution.targets` | Target hosts (mcp-server-standard S-45); must include `"vscode"` |
-| `views` | Panel views, each with an `id` (empty for now) |
+| `views` | Panel views, in display order: `{ id, title: { en, fr }, kind }` (see [The panel](#the-panel)) |
 
 The source (`src/`) holds no literal of these values. When VS Code activates the extension, it reads
 the file, registers `vscode.lm.registerMcpServerDefinitionProvider(<id>, …)` and provides one
 `vscode.McpHttpServerDefinition(<label>, <url>)`. A missing, unknown or malformed key refuses
 activation (and the build), naming the key.
 
+### The panel
+
+The extension adds an activity-bar container (titled with the server `label`) holding one webview
+view per entry of `views`:
+
+```json
+"views": [
+  { "id": "vantage-mcp.tasks", "title": { "en": "Tasks", "fr": "Tâches" }, "kind": "tasks" }
+]
+```
+
+- `id`: the webview view id (letters, digits, `.`, `_`, `-`), unique.
+- `title`: the view title in every language the extension ships (`en`, `fr`); both are required.
+- `kind`: what the view renders. Supported kinds: `tasks`, `messages`, `memory`.
+
+**Add or remove a view: edit `extension.config.json` only**, then `npm run manifest:write`. That
+script writes the container, the views and their `onView:` activation events into `package.json`,
+and the titles into `package.nls.json` (EN) and `package.nls.fr.json` (FR); `npm run build` refuses
+any drift, naming the field or the key. The extension registers exactly the configured ids; no
+source file names a view id (the source scan refuses one). The loader refuses an unknown kind, a
+missing title language or a duplicated id, naming it.
+
+**The three views are placeholders for now.** Each shows an empty state ("No tasks to show yet.")
+in the editor's language. Wiring them to the MCP server's data is the next task; a new kind is a
+code change (its texts must exist in both languages or the source does not compile).
+
+What every panel page guarantees (V-5, V-6, V-12):
+
+- **Nothing remote.** A Content-Security-Policy `default-src 'none'; style-src <webview.cspSource>;
+  script-src 'nonce-<fresh per render>'`; every asset is one of the extension's own files, minted by
+  `webview.asWebviewUri`; no inline style, no inline handler. A unit test reads the generated HTML
+  and refuses any other source, any URL the host did not mint, any script without the nonce.
+- **The editor's theme.** Styles come from the `@vantageos/mosaic` design tokens
+  (`@vantageos/mosaic-tokens`, copied into `out/webview/` at build), whose colour slots are mapped
+  onto VS Code's theme variables (`--vscode-*`), so the panel follows light, dark and high-contrast
+  themes; the panel stylesheet holds no colour of its own (a test refuses one).
+- **The editor's language.** Texts go through `vscode.l10n` (`l10n/bundle.l10n.json` and
+  `bundle.l10n.fr.json`) and view titles through `package.nls*.json`; the page never reads the
+  locale, the extension passes the strings in. A test refuses a key missing in either language.
+- **Text first.** The page is plain HTML that reads without its script; the only script maps the
+  editor's theme kind onto the token theme.
+- **Accessible.** axe-core runs on every view's page with the light and the dark token sets:
+  0 serious or critical violations (colour contrast is reported "incomplete" in jsdom, which has no
+  layout engine; contrast comes from the active VS Code theme).
+
+Why the tokens and not mosaic's display components: `@vantageos/mosaic`'s display components
+(`EmptyState`, ...) style themselves with Tailwind utility classes in a fixed palette
+(`text-slate-900`, `bg-white`), not with the tokens. In a webview they would need a Tailwind build,
+and they would not follow a dark or high-contrast theme. The panel reuses their structure (a section
+labelled by its heading, a heading, a body) and the tokens, until mosaic ships token-styled display
+components.
+
 ### Fork it for another server
 
 1. Edit `extension.config.json` only (and replace `media/icon.png` if you want).
-2. `npm run manifest:write` copies the derived fields into `package.json`.
+2. `npm run manifest:write` copies the derived fields into `package.json` and the view titles into
+   `package.nls*.json`.
 3. `npm ci && npm test && npm run lint`.
 
 No code change. A second configuration file gives a second server; the unit tests prove it.
 
 **Declared exception: `package.json` carries copies.** VS Code and `vsce` read `package.json`
-statically, so `publisher`, `displayName`, `icon`, `activationEvents` and
-`contributes.mcpServerDefinitionProviders` must be literals there. They are derived from
+statically, so `publisher`, `displayName`, `icon`, `activationEvents`, `l10n`,
+`contributes.mcpServerDefinitionProviders`, `contributes.viewsContainers` and `contributes.views`
+must be literals there (and the view titles in `package.nls*.json`). They are derived from
 `extension.config.json` by `scripts/manifest-sync.mjs`, and `npm run build` refuses any difference,
 naming the field. You never edit them by hand.
 
@@ -61,9 +115,9 @@ naming the field. You never edit them by hand.
 
 | Command | What it does |
 |---|---|
-| `npm run build` | `tsc` to `out/`, then checks `package.json` against `extension.config.json` |
+| `npm run build` | `tsc` to `out/`, copies the mosaic tokens to `out/webview/`, then checks `package.json` and `package.nls*.json` against `extension.config.json` |
 | `npm test` | build, `changelog:check`, unit tests (vitest, mocked `vscode`) |
-| `npm run test:integration` | launches VS Code (the `engines.vscode` floor) with the extension and asserts the server definition; needs a display (`xvfb-run -a` on Linux) or `VSCODE_TEST_HEADLESS=1` (Electron headless platform) |
+| `npm run test:integration` | launches VS Code (the `engines.vscode` floor) with the extension, asserts the server definition and opens the panel (each configured view receives its HTML, an unconfigured id does not exist); needs a display (`xvfb-run -a` on Linux) or `VSCODE_TEST_HEADLESS=1` (Electron headless platform) |
 | `npm run lint` | Biome |
 | `npm run typecheck` | `tsc --noEmit` on the extension and the integration suite |
 | `npm run manifest:write` | rewrite the derived `package.json` fields from the configuration |
@@ -75,10 +129,11 @@ One fragment per pull request in `changelog.d/` (see `changelog.d/README.md`); `
 
 ### Not there yet
 
-- The panel next to the chat (views, webview, bilingual strings): a later task.
+- Panel data: the views show placeholders; wiring them to the MCP server's data is the next task.
 - Packaging and publication (Marketplace listing, federated-identity CI publish, version gate): a
-  later task. `.vscodeignore` is already an allowlist (`out/*.js`, the configuration, the icon,
-  README, LICENSE, CHANGELOG).
+  later task (T4). `.vscodeignore` is already an allowlist (`out/*.js`, the token stylesheet, the
+  panel's CSS and script, the configuration, the nls and l10n files, the icon, README, LICENSE,
+  CHANGELOG).
 - The package `name` is `vantage-vscode-extension-boilerplate`, unscoped, for npm and for the extension id: `vsce` refuses a scoped name.
 
 ## Français
@@ -90,17 +145,64 @@ de définitions MCP, contribué dans `package.json` et enregistré à l'activati
 serveur affiché par VS Code), `publisher` (identifiant d'éditeur Marketplace), `url` (point d'accès
 Streamable HTTP du serveur distant, `https` ; `http` seulement sur une adresse locale), `icon`,
 `distribution.targets` (hôtes cibles, S-45, doit contenir `"vscode"`) et `views` (vues du panneau,
-vide pour l'instant).
+dans l'ordre d'affichage : `{ id, title: { en, fr }, kind }`, voir [Le panneau](#le-panneau)).
 
 La source (`src/`) ne contient aucune de ces valeurs en dur. À l'activation, l'extension lit le
 fichier, appelle `vscode.lm.registerMcpServerDefinitionProvider(<id>, …)` et fournit une
 `vscode.McpHttpServerDefinition(<label>, <url>)`. Une clé absente, inconnue ou mal formée refuse
 l'activation (et le build) en la nommant.
 
+### Le panneau
+
+L'extension ajoute un conteneur dans la barre d'activité (titré avec le `label` du serveur) qui
+contient une vue webview par entrée de `views` : `id` (identifiant unique de la vue), `title`
+(le titre dans chaque langue livrée, `en` et `fr`, les deux obligatoires) et `kind` (ce que la vue
+affiche : `tasks`, `messages` ou `memory`).
+
+**Ajouter ou retirer une vue : modifier seulement `extension.config.json`**, puis
+`npm run manifest:write`. Ce script écrit le conteneur, les vues et leurs événements d'activation
+`onView:` dans `package.json`, et les titres dans `package.nls.json` (EN) et `package.nls.fr.json`
+(FR) ; `npm run build` refuse tout écart en nommant le champ ou la clé. L'extension enregistre
+exactement les ids configurés ; aucun fichier source ne nomme un id de vue (le scan de la source le
+refuse). Le chargeur refuse un `kind` inconnu, une langue de titre manquante ou un id en double, en
+le nommant.
+
+**Les trois vues sont pour l'instant des emplacements vides.** Chacune affiche un état vide
+(« Aucune tâche à afficher pour l'instant. ») dans la langue de l'éditeur. Les relier aux données
+du serveur MCP est la tâche suivante.
+
+Ce que garantit chaque page du panneau (V-5, V-6, V-12) :
+
+- **Rien de distant.** Une Content-Security-Policy `default-src 'none'; style-src
+  <webview.cspSource>; script-src 'nonce-<nouveau à chaque rendu>'` ; chaque ressource est un
+  fichier de l'extension, adressé par `webview.asWebviewUri` ; aucun style ni gestionnaire en ligne.
+  Un test unitaire lit le HTML produit et refuse toute autre source, toute URL non fournie par
+  l'hôte, tout script sans nonce.
+- **Le thème de l'éditeur.** Les styles viennent des tokens de `@vantageos/mosaic`
+  (`@vantageos/mosaic-tokens`, copiés dans `out/webview/` au build), dont les couleurs sont reliées
+  aux variables de thème de VS Code (`--vscode-*`) : le panneau suit les thèmes clair, sombre et à
+  contraste élevé ; la feuille de style du panneau ne contient aucune couleur propre (un test le
+  refuse).
+- **La langue de l'éditeur.** Les textes passent par `vscode.l10n` (`l10n/bundle.l10n.json` et
+  `bundle.l10n.fr.json`) et les titres des vues par `package.nls*.json` ; la page ne lit jamais la
+  langue, l'extension lui transmet les textes. Un test refuse une clé absente dans l'une des langues.
+- **Le texte d'abord.** La page est du HTML lisible sans son script ; le seul script relie le type
+  de thème de l'éditeur au thème des tokens.
+- **Accessible.** axe-core tourne sur la page de chaque vue avec les tokens clairs et sombres :
+  0 violation sérieuse ou critique (le contraste est rapporté « incomplet » sous jsdom, qui n'a pas
+  de moteur de mise en page ; il dépend du thème VS Code actif).
+
+Pourquoi les tokens et pas les composants d'affichage de mosaic : ceux de `@vantageos/mosaic`
+(`EmptyState`, ...) se stylent avec des classes Tailwind dans une palette fixe (`text-slate-900`,
+`bg-white`), pas avec les tokens. Dans une webview, ils exigeraient un build Tailwind et ne
+suivraient ni le thème sombre ni le contraste élevé. Le panneau reprend leur structure et les
+tokens, en attendant des composants d'affichage stylés par les tokens.
+
 ### Forker pour un autre serveur
 
 1. Modifier seulement `extension.config.json` (et `media/icon.png` si besoin).
-2. `npm run manifest:write` recopie les champs dérivés dans `package.json`.
+2. `npm run manifest:write` recopie les champs dérivés dans `package.json` et les titres des vues
+   dans `package.nls*.json`.
 3. `npm ci && npm test && npm run lint`.
 
 Aucun changement de code. Un second fichier de configuration donne un second serveur ; les tests
@@ -140,7 +242,8 @@ reste vide.
 
 ### Pas encore là
 
-- Le panneau à côté du chat (vues, webview, textes bilingues) : tâche suivante.
+- Les données du panneau : les vues affichent des emplacements vides ; les relier aux données du
+  serveur MCP est la tâche suivante.
 - Le paquet et la publication (fiche Marketplace, publication CI par identité fédérée, contrôle de
-  version) : tâche suivante.
+  version) : tâche ultérieure (T4).
 - Le `name` du paquet est `vantage-vscode-extension-boilerplate`, non scopé, pour npm comme pour l'identifiant de l'extension : `vsce` refuse un nom scopé.
