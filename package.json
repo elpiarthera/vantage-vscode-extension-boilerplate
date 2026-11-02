@@ -1,0 +1,55 @@
+{
+  "name": "@vantageos/vscode-extension-boilerplate",
+  "displayName": "Vantage MCP Server",
+  "version": "0.1.0",
+  "publisher": "vantageos",
+  "description": "VS Code extension boilerplate that registers one remote MCP server (Streamable HTTP) from one configuration file.",
+  "license": "MIT",
+  "author": "ElPi Corp / Laurent Perello",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elpiarthera/vantage-vscode-extension-boilerplate.git"
+  },
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.101.0"
+  },
+  "categories": [
+    "AI"
+  ],
+  "activationEvents": [
+    "onMcpCollection:vantage-mcp"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "vantage-mcp",
+        "label": "Vantage MCP Server"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/manifest-sync.mjs --check",
+    "manifest:write": "tsc -p tsconfig.json && node scripts/manifest-sync.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.integration.json --noEmit",
+    "pretest": "npm run build",
+    "test": "npm run changelog:check && vitest run",
+    "test:integration": "npm run build && tsc -p tsconfig.integration.json && node out-test/tests/integration/runTest.js",
+    "lint": "biome check src tests scripts",
+    "lint:fix": "biome check --write src tests scripts",
+    "changelog:check": "node scripts/changelog-assemble.mjs --check",
+    "changelog:release": "node scripts/changelog-assemble.mjs",
+    "vscode:prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.20.5",
+    "@types/vscode": "1.101.0",
+    "@vscode/test-electron": "^3.1.0",
+    "mocha": "^12.0.3",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
+}
