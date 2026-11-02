@@ -13,7 +13,15 @@
  * environment but `npm`, `npx`, `tar` on PATH; the repository root comes from this file's location.
  */
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, statSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  realpathSync,
+  rmSync,
+  statSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -59,6 +67,19 @@ step(
   consumer
 );
 const project = join(consumer, "e2e-ext");
+// The created project is a different extension: none of its package.json fields may name the boilerplate.
+{
+  const own = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).name;
+  const created = JSON.parse(readFileSync(join(project, "package.json"), "utf8"));
+  const naming = Object.entries(created)
+    .filter(([, v]) => JSON.stringify(v).includes(own))
+    .map(([k]) => k);
+  if (naming.length > 0) {
+    console.error(`FAIL created package.json still names the boilerplate in: ${naming.join(", ")}`);
+    process.exit(1);
+  }
+  console.log("ok   created package.json names nothing of the boilerplate");
+}
 step("npm ci", "npm", ["ci", "--prefer-offline", "--no-audit", "--no-fund"], project);
 step("npm run build", "npm", ["run", "build"], project);
 step("npm test", "npm", ["test"], project, /Tests\s+\d+ passed[^\n]*/);

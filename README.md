@@ -23,7 +23,9 @@ npx @vscode/vsce package
 `npx` creates `my-extension/` (the directory name becomes the package `name`: lowercase letters,
 digits and hyphens) with version `0.1.0`, an empty changelog and its own `.gitignore` and
 `package-lock.json`; it refuses a directory that already holds files. `npm install` comes before
-`npm run manifest:write`, which compiles the configuration loader with `tsc`. The last command
+`npm run manifest:write`, which compiles the configuration loader with `tsc`. The created
+`package.json` carries no `repository`, `homepage` or `bugs`: add your own before publishing, so
+your listing points at your project, not at this boilerplate. The last command
 produces `my-extension-0.1.0.vsix`, installable with *Extensions: Install from VSIX…*.
 Marketplace publication is a later step, parked for now.
 
@@ -190,7 +192,9 @@ npx @vscode/vsce package
 `npx` crée `mon-extension/` (le nom du dossier devient le `name` du paquet : minuscules, chiffres et
 tirets) en version `0.1.0`, avec un changelog vide et ses propres `.gitignore` et
 `package-lock.json` ; il refuse un dossier qui contient déjà des fichiers. `npm install` passe avant
-`npm run manifest:write`, qui compile le chargeur de configuration avec `tsc`. La dernière commande
+`npm run manifest:write`, qui compile le chargeur de configuration avec `tsc`. Le `package.json`
+créé ne porte ni `repository`, ni `homepage`, ni `bugs` : ajoutez les vôtres avant de publier, pour
+que la fiche pointe vers votre projet et non vers ce boilerplate. La dernière commande
 produit `mon-extension-0.1.0.vsix`, installable par *Extensions : Installer à partir d'un VSIX…*.
 La publication sur la Marketplace est une étape ultérieure, en attente pour l'instant.
 

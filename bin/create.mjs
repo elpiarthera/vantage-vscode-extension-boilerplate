@@ -33,6 +33,10 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(realpathSync(fileURLToPath(import.meta.url))), "..");
 const NAME_RE = /^[a-z0-9][a-z0-9-]*$/;
 const BOILERPLATE_ONLY_SCRIPTS = ["prepack", "test:pack"];
+// Fields that carry the boilerplate's identity (its repository, home page and issue tracker). A created project is a
+// different extension: its Marketplace listing and npm page must not point at the boilerplate, so these are dropped and
+// the README tells the user to set their own. tests/unit/create.test.ts refuses any field still naming the boilerplate.
+const IDENTITY_FIELDS = ["repository", "homepage", "bugs"];
 const LINT_SCRIPTS = ["lint", "lint:fix"];
 const UNRELEASED = "## [Unreleased]";
 
@@ -85,6 +89,7 @@ function ownPackageJson(pkg, name) {
   pkg.version = "0.1.0";
   pkg.bin = undefined;
   pkg.files = undefined;
+  for (const field of IDENTITY_FIELDS) pkg[field] = undefined;
   for (const script of BOILERPLATE_ONLY_SCRIPTS) delete pkg.scripts?.[script];
   for (const script of LINT_SCRIPTS)
     if (typeof pkg.scripts?.[script] === "string")
