@@ -6,7 +6,7 @@ import { afterAll, describe, expect, it, vi } from "vitest";
 // @ts-expect-error — plain ESM script, no type declarations
 import { main } from "../../scripts/changelog-assemble.mjs";
 
-// One changelog fragment per pull request (changelog.d/), folded into CHANGELOG.md at release (docs/releasing.md),
+// One changelog fragment per pull request (changelog.d/), folded into CHANGELOG.md at release (changelog.d/README.md),
 // so parallel pull requests stop conflicting on CHANGELOG.md's `## [Unreleased]` block.
 const scratch = mkdtempSync(join(tmpdir(), "vsx-changelog-"));
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));

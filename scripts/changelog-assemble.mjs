@@ -5,7 +5,7 @@
  * Why: every PR used to edit CHANGELOG.md under `## [Unreleased]`, so each merge made
  * every other open PR CONFLICTING on that block. A PR now adds ONE new file
  * `changelog.d/<branch>.md` and never touches CHANGELOG.md; the fragments are folded in
- * at release time. See changelog.d/README.md and docs/releasing.md.
+ * at release time. See changelog.d/README.md and README.md (Release).
  *
  * Source: elpiarthera/mcp-doctor scripts/changelog-assemble.mjs (itself from
  * vantageos-agency/vantage-peers@0107cb0d), adapted to this repository's Keep a Changelog

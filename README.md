@@ -8,6 +8,25 @@ file**. Built against the VS Code extension standard (ElPi-Corp
 
 ## English
 
+### Quick start
+
+```sh
+npx vantage-vscode-extension-boilerplate my-extension
+cd my-extension
+# edit extension.config.json: one file = one server (id, label, description, publisher, url, icon, views)
+npm install
+npm run manifest:write
+npm run build
+npx @vscode/vsce package
+```
+
+`npx` creates `my-extension/` (the directory name becomes the package `name`: lowercase letters,
+digits and hyphens) with version `0.1.0`, an empty changelog and its own `.gitignore` and
+`package-lock.json`; it refuses a directory that already holds files. `npm install` comes before
+`npm run manifest:write`, which compiles the configuration loader with `tsc`. The last command
+produces `my-extension-0.1.0.vsix`, installable with *Extensions: Install from VSIX…*.
+Marketplace publication is a later step, parked for now.
+
 ### One configuration file = one server
 
 Everything that identifies the server lives in `extension.config.json`:
@@ -124,22 +143,56 @@ naming the field. You never edit them by hand.
 | `npm run lint` | Biome |
 | `npm run typecheck` | `tsc --noEmit` on the extension and the integration suite |
 | `npm run manifest:write` | rewrite the derived `package.json` fields from the configuration |
+| `npm run test:pack` | boilerplate only: packs the npm tarball, creates a project from it with `npx`, then runs `npm ci`, build, tests, lint, typecheck, `vsce ls` and `vsce package` in it (slow, network) |
 
 ### Changelog
 
 One fragment per pull request in `changelog.d/` (see `changelog.d/README.md`); `CHANGELOG.md`'s
 `## [Unreleased]` block stays empty and `npm test` refuses an entry written there.
 
+### Release (this boilerplate)
+
+Two allowlists, independent on purpose:
+
+- `.vscodeignore` says what the **extension** ships in its `.vsix` (V-8): the compiled bundle, the
+  panel assets, the configuration, nls and l10n files, the icon, README, LICENSE, CHANGELOG.
+- `bin/template-files.json` says what a **new project** receives from `npx`. `bin/create.mjs` copies
+  exactly those paths; `.npmignore`, the npm tarball allowlist, is rendered from the same list
+  (`node bin/template-prepare.mjs --npmignore`) and a unit test refuses any difference. npm's `files`
+  field is not used: `vsce` refuses a `files` field next to a `.vscodeignore`.
+
+`npm run test:pack` is the proof that the list is complete. At release:
+`npm run changelog:release -- --version <x.y.z> --date <YYYY-MM-DD>` folds the fragments, then add the
+`[x.y.z]: https://www.npmjs.com/package/vantage-vscode-extension-boilerplate/v/x.y.z` link line at the
+bottom of `CHANGELOG.md`.
+
 ### Not there yet
 
 - Panel data: the views show placeholders; wiring them to the MCP server's data is the next task.
-- Packaging and publication (Marketplace listing, federated-identity CI publish, version gate): a
-  later task (T4). `.vscodeignore` is already an allowlist (`out/*.js`, the token stylesheet, the
-  panel's CSS and script, the configuration, the nls and l10n files, the icon, README, LICENSE,
-  CHANGELOG).
+- Marketplace publication (listing, federated-identity CI publish, version gate): parked. Packaging
+  works: `npx @vscode/vsce package` builds the `.vsix` from the `.vscodeignore` allowlist.
 - The package `name` is `vantage-vscode-extension-boilerplate`, unscoped, for npm and for the extension id: `vsce` refuses a scoped name.
 
 ## Français
+
+### Démarrage rapide
+
+```sh
+npx vantage-vscode-extension-boilerplate mon-extension
+cd mon-extension
+# modifier extension.config.json : un fichier = un serveur (id, label, description, publisher, url, icon, views)
+npm install
+npm run manifest:write
+npm run build
+npx @vscode/vsce package
+```
+
+`npx` crée `mon-extension/` (le nom du dossier devient le `name` du paquet : minuscules, chiffres et
+tirets) en version `0.1.0`, avec un changelog vide et ses propres `.gitignore` et
+`package-lock.json` ; il refuse un dossier qui contient déjà des fichiers. `npm install` passe avant
+`npm run manifest:write`, qui compile le chargeur de configuration avec `tsc`. La dernière commande
+produit `mon-extension-0.1.0.vsix`, installable par *Extensions : Installer à partir d'un VSIX…*.
+La publication sur la Marketplace est une étape ultérieure, en attente pour l'instant.
 
 ### Un fichier de configuration = un serveur
 
@@ -240,17 +293,35 @@ nommant le champ. On ne les modifie jamais à la main.
 `npm run build` (compilation et contrôle de `package.json`), `npm test` (build, contrôle du
 changelog, tests unitaires), `npm run test:integration` (lance VS Code avec l'extension ; nécessite
 un affichage, `xvfb-run -a` sous Linux, ou `VSCODE_TEST_HEADLESS=1`), `npm run lint`, `npm run typecheck`,
-`npm run manifest:write`.
+`npm run manifest:write`, et pour ce boilerplate seulement `npm run test:pack` (crée un projet depuis
+le paquet npm et y lance installation, build, tests, lint, typecheck et `vsce package` ; lent, réseau).
 
 ### Changelog
 
 Un fragment par pull request dans `changelog.d/` ; le bloc `## [Unreleased]` de `CHANGELOG.md`
 reste vide.
 
+### Publication (ce boilerplate)
+
+Deux listes blanches, indépendantes à dessein :
+
+- `.vscodeignore` dit ce que l'**extension** livre dans son `.vsix` (V-8) : le bundle compilé, les
+  fichiers du panneau, la configuration, les fichiers nls et l10n, l'icône, README, LICENSE, CHANGELOG.
+- `bin/template-files.json` dit ce qu'un **nouveau projet** reçoit de `npx`. `bin/create.mjs` copie
+  exactement ces chemins ; `.npmignore`, la liste blanche du paquet npm, est générée depuis la même
+  liste (`node bin/template-prepare.mjs --npmignore`) et un test unitaire refuse tout écart. Le champ
+  `files` de npm n'est pas utilisé : `vsce` refuse un champ `files` à côté d'un `.vscodeignore`.
+
+`npm run test:pack` prouve que la liste est complète. À la publication :
+`npm run changelog:release -- --version <x.y.z> --date <AAAA-MM-JJ>` regroupe les fragments, puis
+ajouter la ligne de lien `[x.y.z]: https://www.npmjs.com/package/vantage-vscode-extension-boilerplate/v/x.y.z`
+en bas de `CHANGELOG.md`.
+
 ### Pas encore là
 
 - Les données du panneau : les vues affichent des emplacements vides ; les relier aux données du
   serveur MCP est la tâche suivante.
-- Le paquet et la publication (fiche Marketplace, publication CI par identité fédérée, contrôle de
-  version) : tâche ultérieure (T4).
+- La publication sur la Marketplace (fiche, publication CI par identité fédérée, contrôle de
+  version) : en attente. Le paquet fonctionne : `npx @vscode/vsce package` construit le `.vsix` depuis
+  la liste blanche `.vscodeignore`.
 - Le `name` du paquet est `vantage-vscode-extension-boilerplate`, non scopé, pour npm comme pour l'identifiant de l'extension : `vsce` refuse un nom scopé.
