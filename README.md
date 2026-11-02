@@ -119,6 +119,21 @@ titles) is a `%key%` whose English and French values live in `package.nls.json` 
 `extension.config.json` by `scripts/manifest-sync.mjs`, and `npm run build` refuses any difference,
 naming the field. You never edit them by hand.
 
+### Sign-in
+
+The extension asks for nothing and holds no credential. When VS Code starts the server, VS Code's own
+MCP sign-in (OAuth) runs against the server's authorization server: the browser opens, you sign in to
+the server, and VS Code keeps the session. The extension never sees, stores, logs or forwards a token
+(V-3). A fork whose server needs another input asks for it when the server starts, never at
+activation, and keeps it in VS Code's SecretStorage (V-4).
+
+### Data
+
+The extension stores nothing: no setting, no state, no secret, no file. It sends nothing anywhere
+except through VS Code to the configured MCP server, and it has no telemetry (V-7). What the server
+reads and writes is the server's own: it is stated in the server's documentation, and a fork states
+it here, under this heading, before publishing.
+
 ### What the rules guarantee
 
 - **V-1, registration.** `package.json` contributes exactly one provider whose id is the configured
@@ -277,6 +292,22 @@ l'utilisateur (`displayName`, `description`, les titres du conteneur et des vues
 `package.nls.fr.json` (V-6) ; un test refuse tout texte en clair. Ils sont dérivés de
 `extension.config.json` par `scripts/manifest-sync.mjs`, et `npm run build` refuse tout écart en
 nommant le champ. On ne les modifie jamais à la main.
+
+### Connexion
+
+L'extension ne demande rien et ne détient aucun identifiant. Quand VS Code démarre le serveur, la
+connexion MCP de VS Code (OAuth) passe par le serveur d'autorisation du serveur : le navigateur
+s'ouvre, vous vous connectez au serveur, et VS Code garde la session. L'extension ne voit, ne stocke,
+ne journalise ni ne transmet aucun jeton (V-3). Un fork dont le serveur exige une autre saisie la
+demande au démarrage du serveur, jamais à l'activation, et la garde dans le SecretStorage de VS Code
+(V-4).
+
+### Données
+
+L'extension ne stocke rien : ni réglage, ni état, ni secret, ni fichier. Elle n'envoie rien ailleurs
+qu'au serveur MCP configuré, via VS Code, et n'a aucune télémétrie (V-7). Ce que le serveur lit et
+écrit relève du serveur : sa documentation le dit, et un fork le dit ici, sous ce titre, avant de
+publier.
 
 ### Ce que garantissent les règles
 
