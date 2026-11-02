@@ -21,7 +21,8 @@ describe("activate()", () => {
     activate(context as unknown as vscode.ExtensionContext);
     expect(register.mock.calls).toHaveLength(1);
     expect(register.mock.calls[0][0]).toBe(config.id);
-    expect(context.subscriptions).toHaveLength(1);
+    // the MCP provider, plus one webview view per configured panel view (tests/unit/panel.test.ts)
+    expect(context.subscriptions).toHaveLength(1 + (config.views as unknown[]).length);
   });
 
   it("provides one HTTP definition with the configured label and URL, and no header", async () => {
