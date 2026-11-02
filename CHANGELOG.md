@@ -10,6 +10,11 @@ Entries are written as one fragment per pull request in `changelog.d/` and folde
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-02
+
+### Fixed
+- A project created by `npx vantage-vscode-extension-boilerplate <dir>` no longer inherits the boilerplate's `repository` (nor `homepage` / `bugs`): its Marketplace listing and npm page would have pointed at the boilerplate. The README tells the user to add their own. A unit test and the pack end-to-end both refuse any created `package.json` field naming the boilerplate.
+
 ## [0.1.0] - 2026-11-02
 
 ### Added
@@ -21,4 +26,5 @@ Entries are written as one fragment per pull request in `changelog.d/` and folde
 - The V-3 source scan refuses a credential written through an aliased state object (`const st = context.workspaceState; st.update(k, refreshToken)`): the state rule now reads any `.update(...)` call's arguments, whatever the receiver.
 - The extension's `displayName` and `description` go through `package.nls.json` / `package.nls.fr.json` (V-6). `extension.config.json` gains a required `description: { en, fr }`; `manifest-sync` writes `%extension.displayName%` / `%extension.description%` into `package.json` and the values into both nls files, and the build refuses drift. A test refuses any user-facing manifest string that is a literal or a key missing from either language.
 
+[0.1.1]: https://www.npmjs.com/package/vantage-vscode-extension-boilerplate/v/0.1.1
 [0.1.0]: https://www.npmjs.com/package/vantage-vscode-extension-boilerplate/v/0.1.0
