@@ -89,6 +89,7 @@ describe("V-3 state and log rules read every form of the credential", () => {
     ["key literal", `context.globalState.update("accessToken", t);`],
     ["key identifier", "context.workspaceState.update(TOKEN_KEY, v);"],
     ["value (P1)", "c.globalState.update(K, s.accessToken);"],
+    ["aliased receiver", "const st = c.workspaceState;\nst.update(KEY, refresh_token);"],
   ])("state, %s -> found", (_form, line) => {
     expect(scan(treeWith(line), stateRule).map((f) => f.rule)).toEqual([
       "V-3 credential written to state",
