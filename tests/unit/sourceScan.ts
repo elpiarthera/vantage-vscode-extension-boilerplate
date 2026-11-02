@@ -18,6 +18,9 @@ export interface ScanRule {
  * V-3 forms, derived from the standard's detector ("every source use of Authorization, token,
  * secrets.store, globalState.update with a credential-shaped key"; red: a stdio definition, an
  * Authorization header, a token written to state or a log). One rule per form.
+ * "A token written to state": the credential can be named by the KEY (a literal or an identifier such as
+ * `TOKEN_KEY`) or carried by the VALUE (`s.accessToken`); the state rule reads the whole argument list of
+ * `<x>State.update(...)`, so all three forms are refused.
  * Declared divergence: a key reached through bracket access (`globalState["update"]`) or a
  * header object built elsewhere and passed as a variable is not read by this scan.
  */
@@ -28,12 +31,12 @@ export const V3_RULES: ScanRule[] = [
   {
     rule: "V-3 credential written to state",
     pattern:
-      /\b(globalState|workspaceState)\s*\.\s*update\s*\(\s*[`'"][^`'"]*(token|secret|password|credential|api[-_]?key|bearer)/i,
+      /\b\w*State\s*\.\s*update\s*\([^)]*(token|secret|password|credential|api[-_]?key|bearer)/i,
   },
   {
     rule: "V-3 credential logged",
     pattern:
-      /(\bconsole\s*\.\s*\w+|\.\s*append(Line)?|\.\s*(trace|debug|info|warn|error))\s*\([^)]*(access[-_]?token|refresh[-_]?token|id[-_]?token|secret|password|bearer)/i,
+      /(\bconsole\s*\.\s*\w+|\.\s*append(Line)?|\.\s*(trace|debug|info|warn|error))\s*\([^)]*(access[-_]?token|refresh[-_]?token|id[-_]?token|secret|password|bearer|api[-_]?key)/i,
   },
   { rule: "V-3 stdio definition for a remote server", pattern: /\bMcpStdioServerDefinition\b/ },
 ];

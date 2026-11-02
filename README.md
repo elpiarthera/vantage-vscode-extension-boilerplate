@@ -79,8 +79,7 @@ One fragment per pull request in `changelog.d/` (see `changelog.d/README.md`); `
 - Packaging and publication (Marketplace listing, federated-identity CI publish, version gate): a
   later task. `.vscodeignore` is already an allowlist (`out/*.js`, the configuration, the icon,
   README, LICENSE, CHANGELOG).
-- The package `name` is scoped (`@vantageos/…`), which `vsce` refuses for a VS Code extension;
-  to be settled before packaging.
+- The package `name` is `vantage-vscode-extension-boilerplate`, unscoped, for npm and for the extension id: `vsce` refuses a scoped name.
 
 ## Français
 
@@ -144,5 +143,4 @@ reste vide.
 - Le panneau à côté du chat (vues, webview, textes bilingues) : tâche suivante.
 - Le paquet et la publication (fiche Marketplace, publication CI par identité fédérée, contrôle de
   version) : tâche suivante.
-- Le `name` du paquet est scopé (`@vantageos/…`), ce que `vsce` refuse pour une extension VS Code ;
-  à trancher avant le packaging.
+- Le `name` du paquet est `vantage-vscode-extension-boilerplate`, non scopé, pour npm comme pour l'identifiant de l'extension : `vsce` refuse un nom scopé.
