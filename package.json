@@ -1,9 +1,9 @@
 {
   "name": "vantage-vscode-extension-boilerplate",
-  "displayName": "Vantage MCP Server",
+  "displayName": "%extension.displayName%",
   "version": "0.1.0",
   "publisher": "vantageos",
-  "description": "VS Code extension boilerplate that registers one remote MCP server (Streamable HTTP) from one configuration file.",
+  "description": "%extension.description%",
   "license": "MIT",
   "author": "ElPi Corp / Laurent Perello",
   "repository": {

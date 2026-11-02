@@ -1,6 +1,10 @@
 {
   "id": "vantage-mcp",
   "label": "Vantage MCP Server",
+  "description": {
+    "en": "VS Code extension boilerplate that registers one remote MCP server (Streamable HTTP) from one configuration file.",
+    "fr": "Boilerplate d'extension VS Code qui enregistre un serveur MCP distant (Streamable HTTP) depuis un seul fichier de configuration."
+  },
   "publisher": "vantageos",
   "url": "https://mcp.example.com/mcp",
   "icon": "media/icon.png",

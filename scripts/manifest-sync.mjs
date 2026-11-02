@@ -34,12 +34,19 @@ function helpers() {
 
 /** The fields package.json must carry, as functions of the configuration. */
 export function derivedFields(config) {
-  const { panelContainerId, viewTitleNlsKey, PANEL_TITLE_NLS_KEY } = helpers();
+  const {
+    panelContainerId,
+    viewTitleNlsKey,
+    PANEL_TITLE_NLS_KEY,
+    DISPLAY_NAME_NLS_KEY,
+    DESCRIPTION_NLS_KEY,
+  } = helpers();
   const views = config.views ?? [];
   const container = panelContainerId(config);
   return {
     publisher: config.publisher,
-    displayName: config.label,
+    displayName: `%${DISPLAY_NAME_NLS_KEY}%`,
+    description: `%${DESCRIPTION_NLS_KEY}%`,
     icon: config.icon,
     activationEvents: [`onMcpCollection:${config.id}`, ...views.map((v) => `onView:${v.id}`)],
     l10n: "./l10n",
@@ -64,16 +71,27 @@ export function derivedFields(config) {
 }
 
 /**
- * The nls keys this script owns, per language: the container title (the server name, a proper
- * noun, identical in both languages) and each view title in its language. Keys it does not own
+ * The nls keys this script owns, per language: the extension's display name (the server name, a proper
+ * noun, identical in both languages) and description (translated in the config), the container title
+ * (the server name again) and each view title in its language. Keys it does not own
  * are left alone; an owned-pattern key (`panel.view.*.title`) with no configured view is stale.
  */
 export function derivedNls(config) {
-  const { viewTitleNlsKey, PANEL_TITLE_NLS_KEY, LANGUAGES } = helpers();
+  const {
+    viewTitleNlsKey,
+    PANEL_TITLE_NLS_KEY,
+    LANGUAGES,
+    DISPLAY_NAME_NLS_KEY,
+    DESCRIPTION_NLS_KEY,
+  } = helpers();
   const views = config.views ?? [];
   const out = {};
   for (const lang of LANGUAGES) {
-    out[lang] = {};
+    out[lang] = {
+      // The name is a proper noun (the same in both files); the description is translated in the config.
+      [DISPLAY_NAME_NLS_KEY]: config.label,
+      [DESCRIPTION_NLS_KEY]: config.description[lang],
+    };
     if (views.length > 0) out[lang][PANEL_TITLE_NLS_KEY] = config.label;
     for (const v of views) out[lang][viewTitleNlsKey(v.id)] = v.title[lang];
   }
@@ -81,7 +99,7 @@ export function derivedNls(config) {
 }
 
 const NLS_FILE = (lang) => (lang === "en" ? "package.nls.json" : `package.nls.${lang}.json`);
-const OWNED = (key) => helpers().isPanelNlsKey(key);
+const OWNED = (key) => helpers().isOwnedNlsKey(key);
 
 /** Every owned nls key whose value differs from the configuration, or that no view owns. */
 export function nlsMismatches(nls, config) {

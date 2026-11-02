@@ -11,6 +11,7 @@ export const CONFIG_FILE_NAME = "extension.config.json";
 export const REQUIRED_KEYS = [
   "id",
   "label",
+  "description",
   "publisher",
   "url",
   "icon",
@@ -40,8 +41,10 @@ const VIEW_KEYS = ["id", "title", "kind"] as const;
 export interface ExtensionConfig {
   /** MCP server definition provider id, contributed in package.json and registered at activation. */
   id: string;
-  /** Human-readable server name shown by VS Code. */
+  /** Human-readable server name shown by VS Code (a proper noun: the same in every language). */
   label: string;
+  /** The extension's description in the Marketplace and the Extensions view, one per language (V-6). */
+  description: Record<Language, string>;
   /** Marketplace publisher id (copied into package.json by `npm run manifest:write`). */
   publisher: string;
   /** Streamable HTTP endpoint of the remote MCP server. */
@@ -97,8 +100,27 @@ export function validateConfig(raw: unknown, file: string): ExtensionConfig {
     return v as string;
   };
 
+  /** A per-language string object: every language present, no other key, each a non-empty string. */
+  const bilingual = (value: unknown, at: string): Record<Language, string> => {
+    if (!isObject(value)) return fail(`"${at}" must be an object with ${LANGUAGES.join(", ")}`);
+    for (const lang of LANGUAGES)
+      if (!(lang in value)) fail(`missing required key "${at}.${lang}"`);
+    for (const key of Object.keys(value))
+      if (!(LANGUAGES as readonly string[]).includes(key)) fail(`unknown key "${at}.${key}"`);
+    for (const lang of LANGUAGES) {
+      const t = value[lang];
+      if (typeof t !== "string" || t.trim() === "")
+        fail(`"${at}.${lang}" must be a non-empty string`);
+    }
+    return Object.fromEntries(LANGUAGES.map((l) => [l, value[l] as string])) as Record<
+      Language,
+      string
+    >;
+  };
+
   const id = str("id", ID_RE, "an identifier (letters, digits, '.', '_', '-')");
   const label = str("label");
+  const description = bilingual(raw.description, "description");
   const publisher = str(
     "publisher",
     PUBLISHER_RE,
@@ -152,31 +174,13 @@ export function validateConfig(raw: unknown, file: string): ExtensionConfig {
       fail(
         `"${at}.kind" ${JSON.stringify(v.kind)} is not a supported view kind (${VIEW_KINDS.join(", ")})`
       );
-    const title = v.title;
-    if (!isObject(title))
-      return fail(`"${at}.title" must be an object with ${LANGUAGES.join(", ")}`);
-    for (const lang of LANGUAGES)
-      if (!(lang in title)) fail(`missing required key "${at}.title.${lang}"`);
-    for (const key of Object.keys(title))
-      if (!(LANGUAGES as readonly string[]).includes(key)) fail(`unknown key "${at}.title.${key}"`);
-    for (const lang of LANGUAGES) {
-      const t = title[lang];
-      if (typeof t !== "string" || t.trim() === "")
-        fail(`"${at}.title.${lang}" must be a non-empty string`);
-    }
-    return {
-      id,
-      kind: v.kind as ViewKind,
-      title: Object.fromEntries(LANGUAGES.map((l) => [l, title[l] as string])) as Record<
-        Language,
-        string
-      >,
-    };
+    return { id, kind: v.kind as ViewKind, title: bilingual(v.title, `${at}.title`) };
   });
 
   return {
     id,
     label,
+    description,
     publisher,
     url,
     icon,
@@ -199,6 +203,15 @@ export const PANEL_TITLE_NLS_KEY = "panel.title";
 /** package.nls key of a view's title. */
 export function viewTitleNlsKey(viewId: string): string {
   return `panel.view.${viewId}.title`;
+}
+
+/** package.nls keys of the extension's display name and description (V-6: no user-facing manifest literal). */
+export const DISPLAY_NAME_NLS_KEY = "extension.displayName";
+export const DESCRIPTION_NLS_KEY = "extension.description";
+
+/** True for an nls key manifest-sync owns: the extension's name and description, and the panel keys. */
+export function isOwnedNlsKey(key: string): boolean {
+  return key === DISPLAY_NAME_NLS_KEY || key === DESCRIPTION_NLS_KEY || isPanelNlsKey(key);
 }
 
 /** True for an nls key the panel owns (its title or a view title), whether or not a view uses it. */
