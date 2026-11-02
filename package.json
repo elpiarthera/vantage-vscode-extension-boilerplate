@@ -1,5 +1,5 @@
 {
-  "name": "@vantageos/vscode-extension-boilerplate",
+  "name": "vantage-vscode-extension-boilerplate",
   "displayName": "Vantage MCP Server",
   "version": "0.1.0",
   "publisher": "vantageos",
@@ -14,12 +14,8 @@
   "engines": {
     "vscode": "^1.101.0"
   },
-  "categories": [
-    "AI"
-  ],
-  "activationEvents": [
-    "onMcpCollection:vantage-mcp"
-  ],
+  "categories": ["AI"],
+  "activationEvents": ["onMcpCollection:vantage-mcp"],
   "main": "./out/extension.js",
   "contributes": {
     "mcpServerDefinitionProviders": [

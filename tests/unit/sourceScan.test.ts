@@ -66,3 +66,28 @@ describe("stripComments()", () => {
     expect(out.split("\n")).toHaveLength(text.split("\n").length);
   });
 });
+
+// V-3 "a token written to state or a log": the credential may be named by the key (a literal or an identifier) or
+// carried by the value, and an API key is a credential in a log too. One injection per form (P1 is the reviewer's
+// probe on PR #1).
+describe("V-3 state and log rules read every form of the credential", () => {
+  const stateRule = V3_RULES.filter((r) => r.rule === "V-3 credential written to state");
+  const logRule = V3_RULES.filter((r) => r.rule === "V-3 credential logged");
+  it.each([
+    ["key literal", `context.globalState.update("accessToken", t);`],
+    ["key identifier", "context.workspaceState.update(TOKEN_KEY, v);"],
+    ["value (P1)", "c.globalState.update(K, s.accessToken);"],
+  ])("state, %s -> found", (_form, line) => {
+    expect(scan(treeWith(line), stateRule).map((f) => f.rule)).toEqual([
+      "V-3 credential written to state",
+    ]);
+  });
+  it("state, a non-credential key and value -> not found (positive control the other way)", () => {
+    expect(scan(treeWith(`context.globalState.update("lastView", id);`), stateRule)).toEqual([]);
+  });
+  it("log, an API key -> found", () => {
+    expect(scan(treeWith(`console.warn("key", apiKey);`), logRule).map((f) => f.rule)).toEqual([
+      "V-3 credential logged",
+    ]);
+  });
+});
