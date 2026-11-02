@@ -1,0 +1,11 @@
+{
+  "id": "vantage-mcp",
+  "label": "Vantage MCP Server",
+  "publisher": "vantageos",
+  "url": "https://mcp.example.com/mcp",
+  "icon": "media/icon.png",
+  "distribution": {
+    "targets": ["vscode"]
+  },
+  "views": []
+}
