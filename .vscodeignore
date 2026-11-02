@@ -1,0 +1,10 @@
+# Allowlist (V-8): exclude everything, then admit only what the extension needs at runtime and
+# the listing files. vsce always adds package.json. Sources, tests, scripts, lockfiles, configs
+# and any .env* stay out because nothing here admits them.
+**
+!out/*.js
+!extension.config.json
+!media/icon.png
+!README.md
+!LICENSE
+!CHANGELOG.md
