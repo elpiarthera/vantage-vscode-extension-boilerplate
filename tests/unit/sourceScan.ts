@@ -20,7 +20,10 @@ export interface ScanRule {
  * Authorization header, a token written to state or a log). One rule per form.
  * "A token written to state": the credential can be named by the KEY (a literal or an identifier such as
  * `TOKEN_KEY`) or carried by the VALUE (`s.accessToken`); the state rule reads the whole argument list of
- * `<x>State.update(...)`, so all three forms are refused.
+ * any `.update(...)` call — the receiver is not read, so a state object reached through an alias
+ * (`const st = context.workspaceState; st.update(k, refreshToken)`) is refused like a direct one. `src/` holds no
+ * `.update(` call at all, so the wider receiver flags nothing legitimate today; a future non-state `.update(` with a
+ * credential-shaped argument is refused too, which is the safe side.
  * Declared divergence: a key reached through bracket access (`globalState["update"]`) or a
  * header object built elsewhere and passed as a variable is not read by this scan.
  */
@@ -30,8 +33,7 @@ export const V3_RULES: ScanRule[] = [
   { rule: "V-3 secrets read/write", pattern: /\bsecrets\s*\.\s*(store|get)\s*\(/ },
   {
     rule: "V-3 credential written to state",
-    pattern:
-      /\b\w*State\s*\.\s*update\s*\([^)]*(token|secret|password|credential|api[-_]?key|bearer)/i,
+    pattern: /\.\s*update\s*\([^)]*(token|secret|password|credential|api[-_]?key|bearer)/i,
   },
   {
     rule: "V-3 credential logged",
