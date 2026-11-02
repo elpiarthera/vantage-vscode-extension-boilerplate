@@ -10,6 +10,11 @@ Entries are written as one fragment per pull request in `changelog.d/` and folde
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-11-02
+
+### Changed
+- **The scaffold carries the new project's repository.** `npx vantage-vscode-extension-boilerplate <dir> --repository <url>` writes `"repository": {"type":"git","url":"<url>"}` (`https:`, `git+https:`, `git+ssh:` or `ssh:`; before or after `<dir>`; a malformed URL, a URL naming the boilerplate and an unknown flag are refused, exit 2, named). Without the flag the scaffold writes the machine placeholder `urn:vantage:todo:repository` (exported as `REPOSITORY_TODO_MARKER`) and the next steps say to set it; `homepage` and `bugs` stay dropped. The pack end-to-end asserts the placeholder and that `vsce package` still succeeds with it. (README: #quick-start)
+
 ## [0.1.2] - 2026-11-02
 
 ### Added
@@ -31,6 +36,7 @@ Entries are written as one fragment per pull request in `changelog.d/` and folde
 - The V-3 source scan refuses a credential written through an aliased state object (`const st = context.workspaceState; st.update(k, refreshToken)`): the state rule now reads any `.update(...)` call's arguments, whatever the receiver.
 - The extension's `displayName` and `description` go through `package.nls.json` / `package.nls.fr.json` (V-6). `extension.config.json` gains a required `description: { en, fr }`; `manifest-sync` writes `%extension.displayName%` / `%extension.description%` into `package.json` and the values into both nls files, and the build refuses drift. A test refuses any user-facing manifest string that is a literal or a key missing from either language.
 
+[0.1.3]: https://www.npmjs.com/package/vantage-vscode-extension-boilerplate/v/0.1.3
 [0.1.2]: https://www.npmjs.com/package/vantage-vscode-extension-boilerplate/v/0.1.2
 [0.1.1]: https://www.npmjs.com/package/vantage-vscode-extension-boilerplate/v/0.1.1
 [0.1.0]: https://www.npmjs.com/package/vantage-vscode-extension-boilerplate/v/0.1.0
