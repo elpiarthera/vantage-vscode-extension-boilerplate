@@ -1,0 +1,35 @@
+# GENERATED from bin/template-files.json by `node bin/template-prepare.mjs --npmignore`; never edit.
+# The npm tarball allowlist: exclude everything, then admit bin/, template/ and the template files.
+/*
+!/bin/
+!/template/
+!/.github/
+/.github/*
+!/.github/workflows/
+/.github/workflows/*
+!/.github/workflows/ci.yml
+!/.vscodeignore
+!/CHANGELOG.md
+!/LICENSE
+!/README.md
+!/biome.json
+!/changelog.d/
+/changelog.d/*
+!/changelog.d/README.md
+!/extension.config.json
+!/l10n
+!/media
+!/package.json
+!/package.nls.fr.json
+!/package.nls.json
+!/scripts
+!/src
+!/tests/
+/tests/*
+!/tests/integration
+!/tests/mocks
+!/tests/unit
+!/tsconfig.integration.json
+!/tsconfig.json
+!/vitest.config.mts
+/tests/unit/create.test.ts

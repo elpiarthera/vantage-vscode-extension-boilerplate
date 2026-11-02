@@ -24,6 +24,9 @@
     "onView:vantage-mcp.memory"
   ],
   "main": "./out/extension.js",
+  "bin": {
+    "vantage-vscode-extension-boilerplate": "bin/create.mjs"
+  },
   "contributes": {
     "mcpServerDefinitionProviders": [
       {
@@ -67,11 +70,13 @@
     "pretest": "npm run build",
     "test": "npm run changelog:check && vitest run",
     "test:integration": "npm run build && tsc -p tsconfig.integration.json && node out-test/tests/integration/runTest.js",
-    "lint": "biome check src tests scripts media",
-    "lint:fix": "biome check --write src tests scripts media",
+    "lint": "biome check src tests scripts media bin",
+    "lint:fix": "biome check --write src tests scripts media bin",
     "changelog:check": "node scripts/changelog-assemble.mjs --check",
     "changelog:release": "node scripts/changelog-assemble.mjs",
-    "vscode:prepublish": "npm run build"
+    "vscode:prepublish": "npm run build",
+    "test:pack": "node tests/pack/pack-e2e.mjs",
+    "prepack": "node bin/template-prepare.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
