@@ -1,0 +1,73 @@
+/*
+ * Panel styles. Every value comes from the mosaic tokens (out/webview/mosaic-tokens.css, copied from
+ * @vantageos/mosaic-tokens at build). The mosaic colour slots the panel reads are mapped here onto the
+ * editor theme's variables, so the panel follows VS Code's light, dark and high-contrast themes; this
+ * file holds no colour of its own (tests/unit/webviewCss.test.ts refuses one).
+ */
+:root,
+:root[data-theme="dark"],
+:root[data-theme="light"] {
+  --mosaic-color-background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+  --mosaic-color-foreground: var(--vscode-sideBar-foreground, var(--vscode-foreground));
+  --mosaic-color-muted-foreground: var(--vscode-descriptionForeground);
+  --mosaic-color-border: var(
+    --vscode-contrastBorder,
+    var(--vscode-sideBarSectionHeader-border, transparent)
+  );
+  --mosaic-color-ring: var(--vscode-focusBorder);
+  --mosaic-font-sans: var(--vscode-font-family);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--mosaic-color-background);
+  color: var(--mosaic-color-foreground);
+  font-family: var(--mosaic-font-sans);
+  font-size: var(--vscode-font-size, var(--mosaic-text-sm));
+  line-height: var(--mosaic-lh-normal);
+}
+
+.mosaic-panel {
+  padding: var(--mosaic-space-3) var(--mosaic-space-4);
+}
+
+/* The view header already shows the title; it stays in the page for assistive technology. */
+.mosaic-panel__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Same structure as mosaic's display EmptyState (section labelled by its heading, heading, body). */
+.mosaic-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mosaic-space-2);
+  padding: var(--mosaic-space-6) var(--mosaic-space-4);
+  text-align: center;
+  border: 1px solid var(--mosaic-color-border);
+  border-radius: var(--mosaic-radius-sm);
+}
+
+.mosaic-empty-state__heading {
+  margin: 0;
+  font-size: var(--mosaic-text-sm);
+  font-weight: var(--mosaic-fw-semibold);
+  color: var(--mosaic-color-foreground);
+}
+
+.mosaic-empty-state__body {
+  margin: 0;
+  max-width: 32ch;
+  font-size: var(--mosaic-text-xs);
+  color: var(--mosaic-color-muted-foreground);
+}
+
+:focus-visible {
+  outline: 1px solid var(--mosaic-color-ring);
+}

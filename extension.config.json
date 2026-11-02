@@ -7,5 +7,9 @@
   "distribution": {
     "targets": ["vscode"]
   },
-  "views": []
+  "views": [
+    { "id": "vantage-mcp.tasks", "title": { "en": "Tasks", "fr": "Tâches" }, "kind": "tasks" },
+    { "id": "vantage-mcp.messages", "title": { "en": "Messages", "fr": "Messages" }, "kind": "messages" },
+    { "id": "vantage-mcp.memory", "title": { "en": "Memory", "fr": "Mémoire" }, "kind": "memory" }
+  ]
 }

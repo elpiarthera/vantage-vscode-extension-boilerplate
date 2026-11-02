@@ -7,8 +7,9 @@ import { type ScanRule, V1_RULES, V3_RULES, scan, stripComments, v2Rules } from 
 
 const SRC = join(ROOT, "src");
 const config = readConfigJson() as Parameters<typeof v2Rules>[0];
-// A view id is part of the V-2 domain even while the committed config has none.
-const configWithView = { ...config, views: [{ id: "vantage.items-panel" }] };
+// Every configured view id is part of the V-2 domain, plus one id the committed config does not carry
+// (a fork's view must be refused just the same).
+const configWithView = { ...config, views: [...config.views, { id: "vantage.items-panel" }] };
 
 /** One injected violation per rule: a source tree the rule's author did not write. */
 const INJECTIONS: Record<string, string> = {
@@ -24,6 +25,13 @@ const INJECTIONS: Record<string, string> = {
   "V-3 credential written to state": `context.globalState.update("accessToken", t);`,
   "V-3 credential logged": `console.log("access_token", t);`,
   "V-3 stdio definition for a remote server": `new vscode.McpStdioServerDefinition(l, "npx");`,
+  // one injection per committed view id, in the form a registration would take
+  ...Object.fromEntries(
+    config.views.map((v) => [
+      `V-2 view id literal ${v.id}`,
+      `vscode.window.registerWebviewViewProvider("${v.id}", p);`,
+    ])
+  ),
 };
 
 const ALL_RULES: ScanRule[] = [...v2Rules(configWithView), ...V1_RULES, ...V3_RULES];
@@ -36,6 +44,10 @@ function treeWith(line: string): string {
 }
 
 describe("source scan (V-1, V-2, V-3)", () => {
+  it("the committed configuration has views, so the view-id rules are not vacuous", () => {
+    expect(config.views.length).toBeGreaterThan(0);
+  });
+
   it("src/ holds no server literal, no literal registration id, no credential handling", () => {
     expect(scan(SRC, ALL_RULES)).toEqual([]);
   });

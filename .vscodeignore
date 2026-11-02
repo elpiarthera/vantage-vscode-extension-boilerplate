@@ -3,7 +3,14 @@
 # and any .env* stay out because nothing here admits them.
 **
 !out/*.js
+!out/webview/mosaic-tokens.css
+!media/webview/panel.css
+!media/webview/panel.js
 !extension.config.json
+!package.nls.json
+!package.nls.fr.json
+!l10n/bundle.l10n.json
+!l10n/bundle.l10n.fr.json
 !media/icon.png
 !README.md
 !LICENSE

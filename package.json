@@ -14,8 +14,15 @@
   "engines": {
     "vscode": "^1.101.0"
   },
-  "categories": ["AI"],
-  "activationEvents": ["onMcpCollection:vantage-mcp"],
+  "categories": [
+    "AI"
+  ],
+  "activationEvents": [
+    "onMcpCollection:vantage-mcp",
+    "onView:vantage-mcp.tasks",
+    "onView:vantage-mcp.messages",
+    "onView:vantage-mcp.memory"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "mcpServerDefinitionProviders": [
@@ -23,29 +30,62 @@
         "id": "vantage-mcp",
         "label": "Vantage MCP Server"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "vantage-mcp-panel",
+          "title": "%panel.title%",
+          "icon": "media/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "vantage-mcp-panel": [
+        {
+          "type": "webview",
+          "id": "vantage-mcp.tasks",
+          "name": "%panel.view.vantage-mcp.tasks.title%"
+        },
+        {
+          "type": "webview",
+          "id": "vantage-mcp.messages",
+          "name": "%panel.view.vantage-mcp.messages.title%"
+        },
+        {
+          "type": "webview",
+          "id": "vantage-mcp.memory",
+          "name": "%panel.view.vantage-mcp.memory.title%"
+        }
+      ]
+    }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && node scripts/manifest-sync.mjs --check",
+    "build": "tsc -p tsconfig.json && node scripts/webview-assets.mjs && node scripts/manifest-sync.mjs --check",
     "manifest:write": "tsc -p tsconfig.json && node scripts/manifest-sync.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.integration.json --noEmit",
     "pretest": "npm run build",
     "test": "npm run changelog:check && vitest run",
     "test:integration": "npm run build && tsc -p tsconfig.integration.json && node out-test/tests/integration/runTest.js",
-    "lint": "biome check src tests scripts",
-    "lint:fix": "biome check --write src tests scripts",
+    "lint": "biome check src tests scripts media",
+    "lint:fix": "biome check --write src tests scripts media",
     "changelog:check": "node scripts/changelog-assemble.mjs --check",
     "changelog:release": "node scripts/changelog-assemble.mjs",
     "vscode:prepublish": "npm run build"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@types/jsdom": "30.0.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.20.5",
     "@types/vscode": "1.101.0",
+    "@vantageos/mosaic-tokens": "0.7.0",
     "@vscode/test-electron": "^3.1.0",
+    "axe-core": "4.14.0",
+    "jsdom": "30.1.3",
     "mocha": "^12.0.3",
     "typescript": "^5.9.3",
     "vitest": "^5.0.5"
-  }
+  },
+  "l10n": "./l10n"
 }
