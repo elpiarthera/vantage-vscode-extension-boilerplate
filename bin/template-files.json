@@ -1,0 +1,31 @@
+{
+  "$comment": "The ONE list of what `npx vantage-vscode-extension-boilerplate <dir>` puts in a new project. bin/create.mjs copies exactly these paths; bin/template-prepare.mjs renders .npmignore (the npm tarball allowlist) from them. `npm run test:pack` proves the list complete: a project created from the packed tarball installs, builds, tests, lints and packages a .vsix. `exclude` removes boilerplate-only files inside a listed directory. `generated` maps a tarball path written at prepack to the project path it is restored to (npm never ships a .gitignore nor a package-lock.json under their own names).",
+  "files": [
+    ".github/workflows/ci.yml",
+    ".vscodeignore",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "biome.json",
+    "changelog.d/README.md",
+    "extension.config.json",
+    "l10n",
+    "media",
+    "package.json",
+    "package.nls.fr.json",
+    "package.nls.json",
+    "scripts",
+    "src",
+    "tests/integration",
+    "tests/mocks",
+    "tests/unit",
+    "tsconfig.integration.json",
+    "tsconfig.json",
+    "vitest.config.mts"
+  ],
+  "exclude": ["tests/unit/create.test.ts"],
+  "generated": {
+    "template/gitignore": ".gitignore",
+    "template/package-lock.json": "package-lock.json"
+  }
+}

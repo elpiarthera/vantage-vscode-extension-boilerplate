@@ -4,3 +4,4 @@ out-test/
 dist/
 *.vsix
 .vscode-test/
+template/
