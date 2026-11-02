@@ -157,3 +157,26 @@ describe("panelContainerId() and pickLanguage()", () => {
     expect(pickLanguage(input)).toBe(out);
   });
 });
+
+// V-6: the extension's description is bilingual in the config, like every user-facing string. One refusal per member
+// of the loader's own LANGUAGES, plus the shapes the same check refuses.
+describe("description (V-6)", () => {
+  it.each([...LANGUAGES])("refuses a description missing language %s, naming it", (lang) => {
+    const description: Record<string, string> = { en: "An extension.", fr: "Une extension." };
+    delete description[lang];
+    expect(() => load({ ...readConfigJson(), description })).toThrow(
+      `missing required key "description.${lang}"`
+    );
+  });
+  it.each([
+    ["a plain string", "An extension.", /"description" must be an object/],
+    [
+      "an empty language",
+      { en: "", fr: "Une extension." },
+      /"description\.en" must be a non-empty string/,
+    ],
+    ["an unknown language", { en: "A", fr: "B", de: "C" }, /unknown key "description\.de"/],
+  ])("refuses %s", (_l, description, message) => {
+    expect(() => load({ ...readConfigJson(), description })).toThrow(message);
+  });
+});

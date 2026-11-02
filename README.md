@@ -15,7 +15,8 @@ Everything that identifies the server lives in `extension.config.json`:
 | Key | Meaning |
 |---|---|
 | `id` | MCP server definition provider id (contributed in `package.json`, registered at activation) |
-| `label` | Server name shown by VS Code (also the extension's display name) |
+| `label` | Server name shown by VS Code (also the extension's display name, a proper noun: the same in every language) |
+| `description` | The extension's description, one per language: `{ en, fr }` |
 | `publisher` | Marketplace publisher id |
 | `url` | Streamable HTTP endpoint of the remote MCP server (`https`; plain `http` only on a loopback host) |
 | `icon` | Extension icon, relative to the configuration file |
@@ -89,9 +90,11 @@ components.
 No code change. A second configuration file gives a second server; the unit tests prove it.
 
 **Declared exception: `package.json` carries copies.** VS Code and `vsce` read `package.json`
-statically, so `publisher`, `displayName`, `icon`, `activationEvents`, `l10n`,
+statically, so `publisher`, `displayName`, `description`, `icon`, `activationEvents`, `l10n`,
 `contributes.mcpServerDefinitionProviders`, `contributes.viewsContainers` and `contributes.views`
-must be literals there (and the view titles in `package.nls*.json`). They are derived from
+must be present there. Every user-facing one (`displayName`, `description`, the container and view
+titles) is a `%key%` whose English and French values live in `package.nls.json` and
+`package.nls.fr.json` (V-6); a test refuses any literal. They are derived from
 `extension.config.json` by `scripts/manifest-sync.mjs`, and `npm run build` refuses any difference,
 naming the field. You never edit them by hand.
 
@@ -142,7 +145,8 @@ One fragment per pull request in `changelog.d/` (see `changelog.d/README.md`); `
 
 Tout ce qui identifie le serveur vit dans `extension.config.json` : `id` (identifiant du fournisseur
 de définitions MCP, contribué dans `package.json` et enregistré à l'activation), `label` (nom du
-serveur affiché par VS Code), `publisher` (identifiant d'éditeur Marketplace), `url` (point d'accès
+serveur affiché par VS Code), `description` (description de l'extension, une par langue :
+`{ en, fr }`), `publisher` (identifiant d'éditeur Marketplace), `url` (point d'accès
 Streamable HTTP du serveur distant, `https` ; `http` seulement sur une adresse locale), `icon`,
 `distribution.targets` (hôtes cibles, S-45, doit contenir `"vscode"`) et `views` (vues du panneau,
 dans l'ordre d'affichage : `{ id, title: { en, fr }, kind }`, voir [Le panneau](#le-panneau)).
@@ -209,8 +213,11 @@ Aucun changement de code. Un second fichier de configuration donne un second ser
 unitaires le prouvent.
 
 **Exception déclarée : `package.json` porte des copies.** VS Code et `vsce` lisent `package.json`
-de façon statique : `publisher`, `displayName`, `icon`, `activationEvents` et
-`contributes.mcpServerDefinitionProviders` doivent y figurer en clair. Ils sont dérivés de
+de façon statique : `publisher`, `displayName`, `description`, `icon`, `activationEvents` et
+`contributes.mcpServerDefinitionProviders` doivent y figurer. Chaque texte visible par
+l'utilisateur (`displayName`, `description`, les titres du conteneur et des vues) y est une clé
+`%clé%` dont les valeurs anglaise et française vivent dans `package.nls.json` et
+`package.nls.fr.json` (V-6) ; un test refuse tout texte en clair. Ils sont dérivés de
 `extension.config.json` par `scripts/manifest-sync.mjs`, et `npm run build` refuse tout écart en
 nommant le champ. On ne les modifie jamais à la main.
 

@@ -2,5 +2,7 @@
   "panel.title": "Vantage MCP Server",
   "panel.view.vantage-mcp.tasks.title": "Tâches",
   "panel.view.vantage-mcp.messages.title": "Messages",
-  "panel.view.vantage-mcp.memory.title": "Mémoire"
+  "panel.view.vantage-mcp.memory.title": "Mémoire",
+  "extension.displayName": "Vantage MCP Server",
+  "extension.description": "Boilerplate d'extension VS Code qui enregistre un serveur MCP distant (Streamable HTTP) depuis un seul fichier de configuration."
 }

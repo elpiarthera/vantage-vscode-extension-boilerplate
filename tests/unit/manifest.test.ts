@@ -143,3 +143,61 @@ function check(dir: string): { status: number; stderr: string } {
     return { status: err.status, stderr: err.stderr.toString() };
   }
 }
+
+// V-6: no user-facing manifest string is a literal. The user-facing fields are derived from the manifest itself:
+// displayName, description, the container titles and the view names; each must be a %key% present in both nls files.
+describe("every user-facing manifest string goes through nls (V-6)", () => {
+  const nlsOf = (lang: string) =>
+    JSON.parse(
+      readFileSync(
+        join(ROOT, lang === "en" ? "package.nls.json" : `package.nls.${lang}.json`),
+        "utf8"
+      )
+    );
+  type Pkg = {
+    displayName?: unknown;
+    description?: unknown;
+    contributes?: {
+      viewsContainers?: Record<string, Array<{ id: string; title?: unknown }>>;
+      views?: Record<string, Array<{ id: string; name?: unknown }>>;
+    };
+  };
+  const userFacing = (pkg: Pkg): Array<[string, unknown]> => [
+    ["displayName", pkg.displayName],
+    ["description", pkg.description],
+    ...Object.values(pkg.contributes?.viewsContainers ?? {})
+      .flat()
+      .map((c): [string, unknown] => [`viewsContainers ${c.id}.title`, c.title]),
+    ...Object.values(pkg.contributes?.views ?? {})
+      .flat()
+      .map((v): [string, unknown] => [`views ${v.id}.name`, v.name]),
+  ];
+  const problems = (pkg: Pkg) => {
+    const out: string[] = [];
+    for (const [field, value] of userFacing(pkg)) {
+      const m = typeof value === "string" ? /^%([^%]+)%$/.exec(value) : null;
+      if (!m) out.push(`${field} is a literal: ${JSON.stringify(value)}`);
+      else
+        for (const lang of ["en", "fr"])
+          if (!(m[1] in nlsOf(lang))) out.push(`${field} key ${m[1]} missing in ${lang}`);
+    }
+    return out;
+  };
+  it("holds for package.json", () => {
+    const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+    expect(problems(pkg)).toEqual([]);
+    expect(userFacing(pkg).length).toBeGreaterThanOrEqual(2);
+  });
+  it("names a literal displayName and a key missing from FR (positive control)", () => {
+    const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+    expect(problems({ ...pkg, displayName: "Vantage MCP Server" })).toContain(
+      'displayName is a literal: "Vantage MCP Server"'
+    );
+    expect(problems({ ...pkg, description: "%no.such.key%" })).toEqual(
+      expect.arrayContaining([
+        "description key no.such.key missing in en",
+        "description key no.such.key missing in fr",
+      ])
+    );
+  });
+});
