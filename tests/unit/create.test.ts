@@ -84,6 +84,20 @@ describe("create <dir>", () => {
     expect(pkg.scripts.build).toBe(BOILERPLATE.scripts.build);
   });
 
+  // A created project is a different extension: no field of its package.json may name the boilerplate (its repository,
+  // home page, issue tracker, or anything else). The boilerplate's identity is read from its own package.json.
+  it("package.json names nothing of the boilerplate (repository, homepage, bugs, any other field)", () => {
+    const pkg = json(join(target, "package.json"));
+    const naming = (p: Record<string, unknown>) =>
+      Object.entries(p)
+        .filter(([, v]) => JSON.stringify(v).includes(BOILERPLATE.name as string))
+        .map(([k]) => k);
+    expect(naming(pkg)).toEqual([]);
+    expect(pkg.repository).toBeUndefined();
+    // positive control: the same check names the boilerplate's own fields
+    expect(naming(BOILERPLATE)).toEqual(expect.arrayContaining(["name", "repository"]));
+  });
+
   it("CHANGELOG.md: the header, named for the project, and an empty [Unreleased], no released section", () => {
     const text = readFileSync(join(target, "CHANGELOG.md"), "utf8");
     const header = readFileSync(join(ROOT, "CHANGELOG.md"), "utf8").split("## [Unreleased]")[0];
