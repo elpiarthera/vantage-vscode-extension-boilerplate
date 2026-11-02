@@ -24,7 +24,11 @@ npx @vscode/vsce package
 digits and hyphens) with version `0.1.0`, an empty changelog and its own `.gitignore` and
 `package-lock.json`; it refuses a directory that already holds files. `npm install` comes before
 `npm run manifest:write`, which compiles the configuration loader with `tsc`. The created
-`package.json` carries no `repository`, `homepage` or `bugs`: add your own before publishing, so
+`package.json` carries no `homepage` or `bugs`, and never this boilerplate's `repository`: pass yours
+with `--repository <url>` (`npx vantage-vscode-extension-boilerplate my-extension --repository https://github.com/acme/my-extension`;
+`https:`, `git+https:`, `git+ssh:` or `ssh:`; a URL naming this boilerplate is refused). Without the flag
+`repository.url` holds the machine placeholder `urn:vantage:todo:repository`, which
+`vscode-extension-doctor` reports as "not set yet" (V-9 could-not-judge) until you replace it, so
 your listing points at your project, not at this boilerplate. The last command
 produces `my-extension-0.1.0.vsix`, installable with *Extensions: Install from VSIX…*.
 Marketplace publication is a later step, parked for now.
@@ -208,8 +212,12 @@ npx @vscode/vsce package
 tirets) en version `0.1.0`, avec un changelog vide et ses propres `.gitignore` et
 `package-lock.json` ; il refuse un dossier qui contient déjà des fichiers. `npm install` passe avant
 `npm run manifest:write`, qui compile le chargeur de configuration avec `tsc`. Le `package.json`
-créé ne porte ni `repository`, ni `homepage`, ni `bugs` : ajoutez les vôtres avant de publier, pour
-que la fiche pointe vers votre projet et non vers ce boilerplate. La dernière commande
+créé ne porte ni `homepage` ni `bugs`, et jamais le `repository` de ce boilerplate : passez le vôtre
+avec `--repository <url>` (`npx vantage-vscode-extension-boilerplate mon-extension --repository https://github.com/acme/mon-extension` ;
+`https:`, `git+https:`, `git+ssh:` ou `ssh:` ; une URL qui nomme ce boilerplate est refusée). Sans le
+drapeau, `repository.url` vaut le marqueur machine `urn:vantage:todo:repository`, que
+`vscode-extension-doctor` signale comme « pas encore renseigné » (V-9 non jugé) tant que vous ne le
+remplacez pas, pour que la fiche pointe vers votre projet et non vers ce boilerplate. La dernière commande
 produit `mon-extension-0.1.0.vsix`, installable par *Extensions : Installer à partir d'un VSIX…*.
 La publication sur la Marketplace est une étape ultérieure, en attente pour l'instant.
 
