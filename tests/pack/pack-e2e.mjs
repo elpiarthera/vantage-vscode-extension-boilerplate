@@ -79,6 +79,16 @@ const project = join(consumer, "e2e-ext");
     process.exit(1);
   }
   console.log("ok   created package.json names nothing of the boilerplate");
+  // No --repository flag: the machine marker (a placeholder the doctor reads as "not set yet"). vsce package below
+  // must still succeed with it.
+  const { REPOSITORY_TODO_MARKER: marker } = await import(join(ROOT, "bin", "create.mjs"));
+  if (created.repository?.url !== marker) {
+    console.error(
+      `FAIL created repository is ${JSON.stringify(created.repository)}, expected the marker ${marker}`
+    );
+    process.exit(1);
+  }
+  console.log("ok   created package.json carries the repository TODO marker (no flag)");
 }
 step("npm ci", "npm", ["ci", "--prefer-offline", "--no-audit", "--no-fund"], project);
 step("npm run build", "npm", ["run", "build"], project);

@@ -14,6 +14,8 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 // @ts-expect-error — plain ESM script, no type declarations
+import { REPOSITORY_TODO_MARKER } from "../../bin/create.mjs";
+// @ts-expect-error — plain ESM script, no type declarations
 import { renderNpmignore } from "../../bin/template-prepare.mjs";
 
 // `npx vantage-vscode-extension-boilerplate <dir>` (bin/create.mjs), run from the working tree as a child process.
@@ -29,8 +31,8 @@ const BOILERPLATE = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"))
 const scratch = mkdtempSync(join(tmpdir(), "vsx-create-"));
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 
-function create(target: string, bin = BIN) {
-  const r = spawnSync(process.execPath, [bin, target], { encoding: "utf8", cwd: scratch });
+function create(target: string, bin = BIN, args: string[] = []) {
+  const r = spawnSync(process.execPath, [bin, target, ...args], { encoding: "utf8", cwd: scratch });
   return { code: r.status, out: r.stdout, err: r.stderr };
 }
 const json = (file: string) => JSON.parse(readFileSync(file, "utf8"));
@@ -93,7 +95,9 @@ describe("create <dir>", () => {
         .filter(([, v]) => JSON.stringify(v).includes(BOILERPLATE.name as string))
         .map(([k]) => k);
     expect(naming(pkg)).toEqual([]);
-    expect(pkg.repository).toBeUndefined();
+    expect(pkg.repository).toEqual({ type: "git", url: REPOSITORY_TODO_MARKER });
+    expect(pkg.homepage).toBeUndefined();
+    expect(pkg.bugs).toBeUndefined();
     // positive control: the same check names the boilerplate's own fields
     expect(naming(BOILERPLATE)).toEqual(expect.arrayContaining(["name", "repository"]));
   });
@@ -173,4 +177,82 @@ describe("the npm tarball allowlist", () => {
     for (const path of [...LIST.files, ...LIST.exclude, ...Object.values(LIST.generated)])
       expect(existsSync(join(ROOT, path)), path).toBe(true);
   });
+});
+
+// The scaffold carries the NEW project's repository, never the boilerplate's (Pi's V-9 ruling).
+describe("create <dir> --repository", () => {
+  const REPO_URL = "https://github.com/acme/my-ext";
+  const repoOf = (dir: string) => json(join(dir, "package.json")).repository;
+
+  it("the marker is a machine string, not prose", () => {
+    expect(REPOSITORY_TODO_MARKER).toBe("urn:vantage:todo:repository");
+    expect(REPOSITORY_TODO_MARKER).not.toMatch(/\s/);
+  });
+
+  it("with the flag after <dir>: the given URL is written", () => {
+    const dir = join(scratch, "with-flag-after");
+    const r = create(dir, BIN, ["--repository", REPO_URL]);
+    expect(r.code).toBe(0);
+    expect(repoOf(dir)).toEqual({ type: "git", url: REPO_URL });
+    expect(r.out).not.toContain("repository");
+  });
+
+  it("with the flag before <dir> and in --repository=<url> form", () => {
+    const a = join(scratch, "with-flag-before");
+    const r = spawnSync(process.execPath, [BIN, "--repository", REPO_URL, a], {
+      encoding: "utf8",
+      cwd: scratch,
+    });
+    expect(r.status).toBe(0);
+    expect(repoOf(a)).toEqual({ type: "git", url: REPO_URL });
+    const b = join(scratch, "with-flag-equals");
+    expect(create(b, BIN, [`--repository=${REPO_URL}`]).code).toBe(0);
+    expect(repoOf(b)).toEqual({ type: "git", url: REPO_URL });
+  });
+
+  it("every accepted scheme is written as given", () => {
+    for (const [i, url] of [
+      "git+https://github.com/acme/x.git",
+      "git+ssh://git@github.com/acme/x.git",
+      "ssh://git@github.com/acme/x.git",
+    ].entries()) {
+      const dir = join(scratch, `scheme-${i}`);
+      expect(create(dir, BIN, ["--repository", url]).code).toBe(0);
+      expect(repoOf(dir).url).toBe(url);
+    }
+  });
+
+  it("without the flag: the machine marker, and the next steps tell the user to set the repository", () => {
+    const dir = join(scratch, "no-flag");
+    const r = create(dir);
+    expect(r.code).toBe(0);
+    expect(repoOf(dir)).toEqual({ type: "git", url: REPOSITORY_TODO_MARKER });
+    expect(r.out).toContain("repository");
+    expect(r.out).toContain("--repository");
+  });
+
+  const refused = (name: string, args: string[], text: RegExp) =>
+    it(`refused, exit 2, named, nothing written — ${name}`, () => {
+      const dir = join(scratch, `refused-${name.replace(/\W+/g, "-").toLowerCase()}`);
+      const r = create(dir, BIN, args);
+      expect(r.code).toBe(2);
+      expect(r.err).toMatch(text);
+      expect(existsSync(dir)).toBe(false);
+    });
+  refused(
+    "the boilerplate's own repository",
+    ["--repository", BOILERPLATE.repository.url],
+    /boilerplate/i
+  );
+  refused(
+    "the boilerplate by name, another host",
+    ["--repository", `https://gitlab.com/x/${BOILERPLATE.name}`],
+    /boilerplate/i
+  );
+  refused("not a URL", ["--repository", "not a url"], /--repository/);
+  refused("a scheme that is not allowed", ["--repository", "ftp://example.com/x"], /--repository/);
+  refused("an scp-style address", ["--repository", "git@github.com:acme/x.git"], /--repository/);
+  refused("an empty value", ["--repository", ""], /--repository/);
+  refused("a missing value", ["--repository"], /--repository/);
+  refused("an unknown flag", ["--nope"], /--nope/);
 });
