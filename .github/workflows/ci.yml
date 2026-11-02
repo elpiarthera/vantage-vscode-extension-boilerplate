@@ -1,0 +1,34 @@
+# CI: lint, unit tests, and the extension-host integration test under a virtual display.
+# Dependencies come from the committed lockfile (npm ci), never re-resolved.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run typecheck
+
+      # pretest builds (tsc + the package.json/extension.config.json agreement check)
+      - run: npm test
+
+      # Downloads the VS Code version named by engines.vscode and runs the suite in its host.
+      - run: xvfb-run -a npm run test:integration
